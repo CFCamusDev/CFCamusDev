@@ -1,0 +1,46 @@
+name: Generate Snake Animation
+
+on:
+  # Esto lo ejecutará automáticamente cada 12 horas
+  schedule:
+    - cron: '0 */12 * * *'
+  # Esto te permite ejecutarlo manualmente
+  workflow_dispatch:
+
+jobs:
+  build:
+    # 1. Permisos: Le damos permiso a ESTA acción para escribir.
+    permissions:
+      contents: write 
+      
+    runs-on: ubuntu-latest
+
+    steps:
+      # 2. Paso de Checkout: La acción necesita "ver" tu repositorio.
+      - uses: actions/checkout@v3
+
+      # 3. Paso de Generación: Usa la acción de Platane/snk para crear los archivos.
+      - name: Generate Snake
+        uses: Platane/snk@v3
+        with:
+          # Tu nombre de usuario de GitHub
+          github_user_name: CFCamusDev
+          
+          # Los archivos que queremos crear (uno claro, uno oscuro)
+          # Se guardarán en una carpeta temporal llamada "dist"
+          outputs: |
+            dist/snake.svg
+            dist/snake-dark.svg?palette=github-dark
+        
+        # Le da a este paso el token de permiso
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 4. Paso de Publicación: ¡El más importante que faltaba!
+      # Toma los archivos de "dist" y los sube a la rama "output".
+      - name: Push to output branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: output # El nombre de la rama que creará
+          folder: dist  # La carpeta que debe copiar
